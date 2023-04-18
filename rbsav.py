@@ -48,22 +48,21 @@ class RBSav:
         self.refreshfile()
 
     def refreshfile(self):
-        fb = open(self.file, 'rb')
-        self.buffer = fb.read()
-        self.obuffer = self.buffer[:]
-        fb.close()
-        if self.repair == False:
-            if len(self.buffer) < 32768 or len(self.buffer) > 65536:
-                self.file = None
-                self.buffer = ''
-                return
+        with open(self.file, 'rb') as fb:
+            self.buffer = fb.read()
+            self.obuffer = self.buffer[:]
+        if self.repair is False and (
+            len(self.buffer) < 32768 or len(self.buffer) > 65536
+        ):
+            self.file = None
+            self.buffer = ''
+            return
         self.refresh()
 
     def saveas(self, file):
         self.check_sav()
-        fb = open(file, 'wb')
-        fb.write(self.buffer)
-        fb.close()
+        with open(file, 'wb') as fb:
+            fb.write(self.buffer)
 
     def save(self):
         self.saveas(self.file)
@@ -99,18 +98,34 @@ class RBSav:
     def set(self, var, value):
         if var == 'name':
             value = self.encode(value, 7)
-            self.buffer = self.buffer[0:9624] + value + chr(80) + chr(80) + chr(80) + chr(80) + self.buffer[9635:]
+            self.buffer = (
+                self.buffer[:9624]
+                + value
+                + chr(80)
+                + chr(80)
+                + chr(80)
+                + chr(80)
+                + self.buffer[9635:]
+            )
         if var == 'rivalname':
             value = self.encode(value, 7)
-            self.buffer = self.buffer[0:9718] + value + chr(80) + chr(80) + chr(80) + chr(80) + self.buffer[9729:]
+            self.buffer = (
+                self.buffer[:9718]
+                + value
+                + chr(80)
+                + chr(80)
+                + chr(80)
+                + chr(80)
+                + self.buffer[9729:]
+            )
         if var == 'money':
             value = value[-6:].rjust(6, '0')
-            self.setbyte(9715, int(value[0:2], 16))
+            self.setbyte(9715, int(value[:2], 16))
             self.setbyte(9716, int(value[2:4], 16))
             self.setbyte(9717, int(value[4:6], 16))
         if var == 'chips':
             value = value[-4:].rjust(4, '0')
-            self.setbyte(10320, int(value[0:2], 16))
+            self.setbyte(10320, int(value[:2], 16))
             self.setbyte(10321, int(value[2:4], 16))
         if var == 'hours':
             self.setbyte(11501, int(value) & 255)
@@ -130,10 +145,10 @@ class RBSav:
                 self.setbyte(self.boxoffset[b], int(value))
 
     def setbyte(self, byte, value, string = None):
-        if string == None:
-            self.buffer = self.buffer[0:byte] + chr(value) + self.buffer[byte + 1:]
+        if string is None:
+            self.buffer = self.buffer[:byte] + chr(value) + self.buffer[byte + 1:]
         else:
-            return string[0:byte] + chr(value) + string[byte + 1:]
+            return string[:byte] + chr(value) + string[byte + 1:]
 
     def load_time(self):
         self.hours = ord(self.buffer[11501])
@@ -222,28 +237,40 @@ class RBSav:
         self.pcpkm(offset + 1 + p, offset + 682 + p * 11, offset + 902 + p * 11, offset + 22 + p * 33, pkm)
 
     def pkm(self, off_hex, off_otname, off_name, off_data, data = None):
-        if data == None:
+        if data is None:
             pkm = self.buffer[off_hex]
             pkm += self.buffer[off_otname:off_otname + 11]
             pkm += self.buffer[off_name:off_name + 11]
             pkm += self.buffer[off_data:off_data + 44]
             return pkm
         self.setbyte(off_hex, ord(data[0]))
-        self.buffer = self.buffer[0:off_otname] + data[1:12] + self.buffer[off_otname + 11:]
-        self.buffer = self.buffer[0:off_name] + data[12:23] + self.buffer[off_name + 11:]
-        self.buffer = self.buffer[0:off_data] + data[23:67] + self.buffer[off_data + 44:]
+        self.buffer = (
+            self.buffer[:off_otname] + data[1:12] + self.buffer[off_otname + 11 :]
+        )
+        self.buffer = (
+            self.buffer[:off_name] + data[12:23] + self.buffer[off_name + 11 :]
+        )
+        self.buffer = (
+            self.buffer[:off_data] + data[23:67] + self.buffer[off_data + 44 :]
+        )
 
     def pcpkm(self, off_hex, off_otname, off_name, off_data, data = None):
-        if data == None:
+        if data is None:
             pkm = self.buffer[off_hex]
             pkm += self.buffer[off_otname:off_otname + 11]
             pkm += self.buffer[off_name:off_name + 11]
-            pkm += self.buffer[off_data:off_data + 33]
+            pkm += self.buffer[off_data:off_data + 44]
             return pkm
         self.setbyte(off_hex, ord(data[0]))
-        self.buffer = self.buffer[0:off_otname] + data[1:12] + self.buffer[off_otname + 11:]
-        self.buffer = self.buffer[0:off_name] + data[12:23] + self.buffer[off_name + 11:]
-        self.buffer = self.buffer[0:off_data] + data[23:67] + self.buffer[off_data + 33:]
+        self.buffer = (
+            self.buffer[:off_otname] + data[1:12] + self.buffer[off_otname + 11 :]
+        )
+        self.buffer = (
+            self.buffer[:off_name] + data[12:23] + self.buffer[off_name + 11 :]
+        )
+        self.buffer = (
+            self.buffer[:off_data] + data[23:67] + self.buffer[off_data + 44 :]
+        )
 
     def pkm_get(self, pkm, var):
         if var == 'sprite':
@@ -259,29 +286,17 @@ class RBSav:
         if var == 'level':
             return ord(pkm[26])
         if var == 'asleep':
-            if ord(pkm[27]) & 7:
-                return True
-            return False
-        if var == 'poisoned':
-            if ord(pkm[27]) & 8:
-                return True
-            return False
-        if var == 'burned':
-            if ord(pkm[27]) & 16:
-                return True
-            return False
-        if var == 'frozen':
-            if ord(pkm[27]) & 32:
-                return True
-            return False
-        if var == 'paralyzed':
-            if ord(pkm[27]) & 64:
-                return True
-            return False
-        if var == 'ok':
-            if ord(pkm[27]) & 127:
-                return False
-            return True
+            return bool(ord(pkm[27]) & 7)
+        elif var == 'burned':
+            return bool(ord(pkm[27]) & 16)
+        elif var == 'frozen':
+            return bool(ord(pkm[27]) & 32)
+        elif var == 'ok':
+            return not ord(pkm[27]) & 127
+        elif var == 'paralyzed':
+            return bool(ord(pkm[27]) & 64)
+        elif var == 'poisoned':
+            return bool(ord(pkm[27]) & 8)
         if var == 'type1':
             return ord(pkm[28])
         if var == 'type2':
@@ -352,12 +367,10 @@ class RBSav:
             pkm = self.setbyte(0, value, pkm)
         if var == 'num':
             pkm = self.setbyte(23, value, pkm)
-        if var == 'otname':
-            if value != self.pkm_get(pkm, var):
-                pkm = pkm[0:1] + self.encode(value, 10) + chr(80) + pkm[12:]
-        if var == 'name':
-            if value != self.pkm_get(pkm, var):
-                pkm = pkm[0:12] + self.encode(value, 10) + chr(80) + pkm[23:]
+        if var == 'otname' and value != self.pkm_get(pkm, var):
+            pkm = pkm[:1] + self.encode(value, 10) + chr(80) + pkm[12:]
+        if var == 'name' and value != self.pkm_get(pkm, var):
+            pkm = pkm[:12] + self.encode(value, 10) + chr(80) + pkm[23:]
         if var == 'hp':
             pkm = self.setbyte(25, value & 255, pkm)
             pkm = self.setbyte(24, value >> 8, pkm)
@@ -546,5 +559,5 @@ class RBSav:
                 encoded += self.etable[dec]
 
         encoded = encoded.ljust(fill, chr(80))
-        encoded = encoded[0:fill]
+        encoded = encoded[:fill]
         return encoded

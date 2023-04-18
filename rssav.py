@@ -62,24 +62,23 @@ class RSSav:
         self.refreshfile()
 
     def refreshfile(self):
-        fb = open(self.file, 'rb')
-        self.buffer = fb.read()
-        self.obuffer = self.buffer[:]
-        fb.close()
-        if self.repair == False:
-            if len(self.buffer) < 131072 or len(self.buffer) > 262144:
-                self.file = None
-                self.buffer = ''
-                return
+        with open(self.file, 'rb') as fb:
+            self.buffer = fb.read()
+            self.obuffer = self.buffer[:]
+        if self.repair == False and (
+            len(self.buffer) < 131072 or len(self.buffer) > 262144
+        ):
+            self.file = None
+            self.buffer = ''
+            return
         self.refresh()
 
     def saveas(self, file):
         self.repair = self.ok
         self.pack_sav()
         self.check_sav()
-        fb = open(file, 'wb')
-        fb.write(self.buffer)
-        fb.close()
+        with open(file, 'wb') as fb:
+            fb.write(self.buffer)
 
     def save(self):
         self.repair = self.ok
@@ -104,10 +103,7 @@ class RSSav:
         self.load_pokemon()
 
     def unpack_sav(self):
-        self.gbuffer = ''
-        for b in range(14):
-            self.gbuffer += self.gbuffers[b]
-
+        self.gbuffer = ''.join(self.gbuffers[b] for b in range(14))
         if ord(self.gbuffer[18899]) == 0:
             self.flok = False
         else:
@@ -120,7 +116,11 @@ class RSSav:
         for b in range(14):
             start = self.boffset[b]
             self.gbuffers[b] = self.gbuffer[3968 * b:3968 * b + 3968]
-            self.buffer = self.buffer[0:start] + self.gbuffers[b] + self.buffer[start + 3968:]
+            self.buffer = (
+                self.buffer[:start]
+                + self.gbuffers[b]
+                + self.buffer[start + 3968 :]
+            )
 
     def check_sav(self):
         FLtable = (3876, 3968, 3968, 3968, 3776, 3968, 3968, 3968, 3968, 3968, 3968, 3968, 3968, 2000, 28, 256)
@@ -171,6 +171,7 @@ class RSSav:
         self.ok = False
         self.rsok = True
         self.flok = False
+        size = 3968
         for block in range(28):
             start = 4096 * block
             blockid = ord(self.buffer[start + 4084])
@@ -178,16 +179,14 @@ class RSSav:
             saveid += ord(self.buffer[start + 4093]) << 8
             saveid += ord(self.buffer[start + 4094]) << 16
             saveid += ord(self.buffer[start + 4095]) << 24
-            size = 3968
-            rssize = RStable[blockid]
             flsize = FLtable[blockid]
-            rschecksum = 0
-            flchecksum = 0
             self.checksum = ord(self.buffer[start + 4086]) + ord(self.buffer[start + 4087]) * 256
             if self.gsaveid[blockid] < saveid:
                 self.gbuffers[blockid] = self.buffer[start:start + 3968]
                 self.gsaveid[blockid] = saveid
                 self.boffset[blockid] = start
+                rssize = RStable[blockid]
+                rschecksum = 0
                 for x in range(0, rssize, 4):
                     rschecksum += ord(self.buffer[x + start])
                     rschecksum += ord(self.buffer[x + start + 1]) << 8
@@ -196,14 +195,14 @@ class RSSav:
 
                 rschecksum += rschecksum >> 16
                 rschecksum &= 65535
+                flchecksum = 0
                 flchecksum += flchecksum >> 16
                 flchecksum &= 65535
-                if self.firsttime == True:
-                    if self.repair == False:
-                        if flchecksum != self.checksum:
-                            self.flok = False
-                        if rschecksum != self.checksum:
-                            self.rsok = False
+                if self.firsttime == True and self.repair == False:
+                    if flchecksum != self.checksum:
+                        self.flok = False
+                    if rschecksum != self.checksum:
+                        self.rsok = False
                 if self.rsok == False and self.repair == False:
                     self.ok = False
                 self.checksum = rschecksum
@@ -235,10 +234,10 @@ class RSSav:
             self.gbuffer = self.setbyte(17, int(value) & 255, self.gbuffer)
 
     def setbyte(self, byte, value, string = None):
-        if string == None:
-            self.buffer = self.buffer[0:byte] + chr(value) + self.buffer[byte + 1:]
+        if string is None:
+            self.buffer = self.buffer[:byte] + chr(value) + self.buffer[byte + 1:]
         else:
-            return string[0:byte] + chr(value) + string[byte + 1:]
+            return string[:byte] + chr(value) + string[byte + 1:]
 
     def load_time(self):
         self.hours = ord(self.gbuffer[14])
@@ -253,7 +252,7 @@ class RSSav:
         self.mantain = options >> 6 & 1
         self.textspeed = options & 15
 
-    def setpokedex(self, x, isseen, iscatched):
+        def setpokedex(self, x, isseen, iscatched):
         pos = 2 ** ((x - 1) % 8)
         seen = ord(self.gbuffer[6328 + (x - 1) // 8])
         catched = ord(self.gbuffer[40 + (x - 1) // 8])
@@ -277,11 +276,11 @@ class RSSav:
                 self.seen[x * 8 + y + 1] = seen >> y & 1
 
     def load_badges(self):
-        return
         badgesmap = ord(self.buffer[9730])
         self.badges = [0] * 8
         for x in range(8):
             self.badges[x] = badgesmap >> x & 1
+        return
 
     def load_items(self):
         items = [[0, 0]] * 163
@@ -321,10 +320,18 @@ class RSSav:
                     self.boxpokemoncount[b] += 1
 
     def setpokemon(self, p, pkm):
-        self.gbuffer = self.gbuffer[0:4536 + 100 * p] + pkm + self.gbuffer[4536 + 100 * (p + 1):]
+        self.gbuffer = (
+            self.gbuffer[: 4536 + 100 * p]
+            + pkm
+            + self.gbuffer[4536 + 100 * (p + 1) :]
+        )
 
     def setpcpokemon(self, p, pkm):
-        self.gbuffer = self.gbuffer[0:19844 + 80 * p] + pkm + self.gbuffer[19844 + 80 * (p + 1):]
+        self.gbuffer = (
+            self.gbuffer[: 19844 + 80 * p]
+            + pkm
+            + self.gbuffer[19844 + 80 * (p + 1) :]
+        )
 
     def pkm_getdata(self, pkm):
         blockpos = [(0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 2, 3, 1, 1, 2, 3, 2, 3, 1, 1, 2, 3, 2, 3),
@@ -556,7 +563,7 @@ class RSSav:
         if var == 'caughtlocation':
             return self.pkm_sget(pkm, 3, 1)
         if var == 'caughtlevel':
-            return self.pkm_sget(pkm, 3, 2)
+            return self.pkm_sget(pkm, 3, 2) & 127
         if var == 'caughtball':
             return self.pkm_sget(pkm, 3, 3) >> 3 & 15
         if var == 'otgender':
