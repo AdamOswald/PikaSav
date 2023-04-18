@@ -277,10 +277,6 @@ class RSSav:
 
     def load_badges(self):
         return
-        badgesmap = ord(self.buffer[9730])
-        self.badges = [0] * 8
-        for x in range(8):
-            self.badges[x] = badgesmap >> x & 1
 
     def load_items(self):
         items = [[0, 0]] * 163
