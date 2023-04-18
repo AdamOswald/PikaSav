@@ -247,8 +247,12 @@ class RSSav:
 
     def load_options(self):
         return
+        options = ord(self.buffer[9729])
+        self.animation = not options >> 7
+        self.mantain = options >> 6 & 1
+        self.textspeed = options & 15
 
-    def setpokedex(self, x, isseen, iscatched):
+        def setpokedex(self, x, isseen, iscatched):
         pos = 2 ** ((x - 1) % 8)
         seen = ord(self.gbuffer[6328 + (x - 1) // 8])
         catched = ord(self.gbuffer[40 + (x - 1) // 8])
@@ -273,6 +277,10 @@ class RSSav:
 
     def load_badges(self):
         return
+        badgesmap = ord(self.buffer[9730])
+        self.badges = [0] * 8
+        for x in range(8):
+            self.badges[x] = badgesmap >> x & 1
 
     def load_items(self):
         items = [[0, 0]] * 163
