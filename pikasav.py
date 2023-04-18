@@ -10035,12 +10035,11 @@ class PikaSav():
         global pokemon
         global pokedex
         global types
-        file = askopenfilename(filetypes=[('All files', '*.*')])
-        if file:
+        if file := askopenfilename(filetypes=[('All files', '*.*')]):
             sav = RBSav(file, True)
             self.gen = 1
             self.bn = 12
-            self.root.title(self.title + ' - Red/Blue/Yellow')
+            self.root.title(f'{self.title} - Red/Blue/Yellow')
             items = items_rb[:]
             pokemon = pokemon_rb[:]
             pokemon_lower = pokemon_lower_rb[:]
@@ -10058,8 +10057,7 @@ class PikaSav():
         global pokemon
         global pokedex
         global types
-        file = askopenfilename(filetypes=[('All files', '*.*')])
-        if file:
+        if file := askopenfilename(filetypes=[('All files', '*.*')]):
             sav = GSSav(file, True)
             items = items_gs[:]
             pokemon = pokemon_gs[:]
@@ -10069,7 +10067,7 @@ class PikaSav():
             types = types_gs[:]
             self.gen = 2
             self.bn = 14
-            self.root.title(self.title + ' - Gold/Silver')
+            self.root.title(f'{self.title} - Gold/Silver')
             self.sav = sav
             self.show_data()
             self.close_frames()
@@ -10081,8 +10079,7 @@ class PikaSav():
         global pokemon
         global pokedex
         global types
-        file = askopenfilename(filetypes=[('All files', '*.*')])
-        if file:
+        if file := askopenfilename(filetypes=[('All files', '*.*')]):
             sav = CRSav(file, True)
             items = items_gs[:]
             pokemon = pokemon_gs[:]
@@ -10092,7 +10089,7 @@ class PikaSav():
             types = types_gs[:]
             self.gen = 2
             self.bn = 14
-            self.root.title(self.title + ' - Crystal')
+            self.root.title(f'{self.title} - Crystal')
             self.sav = sav
             self.show_data()
             self.close_frames()
@@ -10104,8 +10101,7 @@ class PikaSav():
         global pokemon
         global pokedex
         global types
-        file = askopenfilename(filetypes=[('All files', '*.*')])
-        if file:
+        if file := askopenfilename(filetypes=[('All files', '*.*')]):
             sav = RSSav(file, 1)
             items = items_rs[:]
             pokemon = pokemon_rs[:]
@@ -10115,7 +10111,7 @@ class PikaSav():
             types = types_rs[:]
             self.gen = 3
             self.bn = 14
-            self.root.title(self.title + ' - Ruby/Sapphire')
+            self.root.title(f'{self.title} - Ruby/Sapphire')
             self.sav = sav
             self.show_data()
             self.close_frames()
@@ -10127,8 +10123,7 @@ class PikaSav():
         global pokemon
         global pokedex
         global types
-        file = askopenfilename(filetypes=[('All files', '*.*')])
-        if file:
+        if file := askopenfilename(filetypes=[('All files', '*.*')]):
             sav = RSSav(file)
             if not sav.ok:
                 sav = CRSav(file)
@@ -10142,7 +10137,7 @@ class PikaSav():
                             return False
                         self.gen = 1
                         self.bn = 12
-                        self.root.title(self.title + ' - Red/Blue/Yellow')
+                        self.root.title(f'{self.title} - Red/Blue/Yellow')
                         items = items_rb[:]
                         pokemon = pokemon_rb[:]
                         pokemon_lower = pokemon_lower_rb[:]
@@ -10158,7 +10153,7 @@ class PikaSav():
                         types = types_gs[:]
                         self.gen = 2
                         self.bn = 14
-                        self.root.title(self.title + ' - Gold/Silver')
+                        self.root.title(f'{self.title} - Gold/Silver')
                 else:
                     items = items_gs[:]
                     pokemon = pokemon_gs[:]
@@ -10168,7 +10163,7 @@ class PikaSav():
                     types = types_gs[:]
                     self.gen = 2
                     self.bn = 14
-                    self.root.title(self.title + ' - Crystal')
+                    self.root.title(f'{self.title} - Crystal')
             else:
                 items = items_rs[:]
                 pokemon = pokemon_rs[:]
@@ -10178,7 +10173,7 @@ class PikaSav():
                 types = types_rs[:]
                 self.gen = 3
                 self.bn = 14
-                self.root.title(self.title + ' - Ruby/Sapphire')
+                self.root.title(f'{self.title} - Ruby/Sapphire')
             self.sav = sav
             self.show_data()
             self.close_frames()
@@ -10193,10 +10188,11 @@ class PikaSav():
     def saveas_sav(self):
         if self.sav != None:
             self.store_changes()
-            file = asksaveasfilename(filetypes=[('RBY/GSC/RS SaveGame', '.sav')])
-            if file:
+            if file := asksaveasfilename(
+                filetypes=[('RBY/GSC/RS SaveGame', '.sav')]
+            ):
                 if file[-4:] != '.sav':
-                    file = '%s.sav' % file
+                    file = f'{file}.sav'
                 self.sav.saveas(file)
         else:
             showerror('Something went wrong =(', 'You need to load a .sav first')
@@ -10221,9 +10217,7 @@ class PikaSav():
         self.sav.refresh()
 
     def show_data(self):
-        self.bp = 20
-        if self.gen == 3:
-            self.bp = 30
+        self.bp = 30 if self.gen == 3 else 20
         self.trname.delete(0, END)
         self.trname.insert(0, self.sav.name)
         self.rivalname.delete(0, END)
@@ -10291,7 +10285,10 @@ class PikaSav():
         menu.add_cascade(label='Fast editing', menu=menu_edit)
         menu_hp = Menu(menu, tearoff=0)
         for t in range(len(types_gs_hp)):
-            menu_hp.add_command(label='Base 70, %s type' % types_gs_hp[t], command=lambda t=t: self.hidden_power_set(t))
+            menu_hp.add_command(
+                label=f'Base 70, {types_gs_hp[t]} type',
+                command=lambda t=t: self.hidden_power_set(t),
+            )
         menu.add_cascade(label='Hidden Power', menu=menu_hp)
         menu_info = Menu(menu, tearoff=0)
         if self.gen <= 2:
@@ -10328,7 +10325,10 @@ class PikaSav():
             destination = int(parse('Box {}', destination).fixed[0]) - 1
             self.sav.setpcpokemon(destination * self.bp + self.sav.boxpokemoncount[destination], self.sav.pokemon[p])
             self.sav.boxpokemoncount[destination] += 1
-            self.sav.set('box' + str(destination) + 'pokemoncount', self.sav.boxpokemoncount[destination])
+            self.sav.set(
+                f'box{str(destination)}pokemoncount',
+                self.sav.boxpokemoncount[destination],
+            )
             self.delete_pkm(p)
             self.wmdel_pokemon()
             self.show_pokemon()
@@ -10337,33 +10337,34 @@ class PikaSav():
                 self.sav.setpokemon(self.sav.pokemoncount, self.sav.pcpokemon[destination * self.bp + p])
                 self.sav.pokemoncount += 1
                 self.sav.set('pokemoncount', self.sav.pokemoncount)
-                self.delete_pkm(p, box)
             else:
                 destination = int(parse('Box {}', destination).fixed[0]) - 1
                 self.sav.setpcpokemon(destination * self.bp + self.sav.boxpokemoncount[destination], self.sav.pcpokemon[box * self.bp + p])
                 self.sav.boxpokemoncount[destination] += 1
-                self.sav.set('box' + str(destination) + 'pokemoncount', self.sav.boxpokemoncount[destination])
-                self.delete_pkm(p, box)
+                self.sav.set(
+                    f'box{str(destination)}pokemoncount',
+                    self.sav.boxpokemoncount[destination],
+                )
+            self.delete_pkm(p, box)
             self.wmdel_boxedit()
             self.show_boxedit(box)
 
     def swap_pkm(self, p, box=None):
         if not hasattr(self, 'swap'):
             self.swap = p
+        elif box is None:
+            pkm = self.sav.pokemon[p]
+            self.sav.setpokemon(p, self.sav.pokemon[self.swap])
+            self.sav.setpokemon(self.swap, pkm)
+            self.wmdel_pokemon()
+            self.show_pokemon()
         else:
-            if box is None:
-                pkm = self.sav.pokemon[p]
-                self.sav.setpokemon(p, self.sav.pokemon[self.swap])
-                self.sav.setpokemon(self.swap, pkm)
-                self.wmdel_pokemon()
-                self.show_pokemon()
-            else:
-                pkm = self.sav.pcpokemon[box * self.bp + p]
-                self.sav.setpcpokemon(p, self.sav.pcpokemon[box * self.bp + self.swap])
-                self.sav.setpcpokemon(box * self.bp + self.swap, pkm)
-                del self.swap
-                self.wmdel_boxedit()
-                self.show_boxedit(box)
+            pkm = self.sav.pcpokemon[box * self.bp + p]
+            self.sav.setpcpokemon(p, self.sav.pcpokemon[box * self.bp + self.swap])
+            self.sav.setpcpokemon(box * self.bp + self.swap, pkm)
+            del self.swap
+            self.wmdel_boxedit()
+            self.show_boxedit(box)
 
     def delete_pkm(self, index, box=None):
         if box is None:
@@ -10403,7 +10404,7 @@ class PikaSav():
             self.reload_pkm()
 
     def pkm_info(self):
-        if self.b == None:
+        if self.b is None:
             showinfo('.PKM info',
                      'This .PKM is located at Party, Pokemon %d.\nIt is %d bytes long (Gen %d, Party Pokemon)' % (
                          self.p + 1, len(self.pkm), self.gen), parent=self.pokeedit)
@@ -10471,7 +10472,7 @@ class PikaSav():
         b = self.b
         if self.pokeedit != None:
             self.wmdel_pokeedit()
-        if b == None:
+        if b is None:
             self.sav.setpokemon(p, self.pkm)
             self.sav.refresh()
             if self.pokemon != None:
@@ -10492,9 +10493,8 @@ class PikaSav():
             return
         if self.pokeedit != None:
             self.wmdel_pokeedit()
-        fb = open(file, 'rb')
-        pkm = fb.read()
-        fb.close()
+        with open(file, 'rb') as fb:
+            pkm = fb.read()
         if len(pkm) == len(self.pkm):
             self.pkm = pkm
             self.reload_pkm()
@@ -10551,16 +10551,14 @@ class PikaSav():
     def heal_pkm(self):
         if self.pokeedit != None:
             self.wmdel_pokeedit()
-        if self.b == None:
+        if self.b is None:
             self.pkm = self.sav.pkm_set(self.pkm, 'hp', self.sav.pkm_get(self.pkm, 'maxhp'))
         else:
             num = self.sav.pkm_get(self.pkm, 'num')
             if self.gen == 1:
                 num = rb2dex[num]
             level = self.sav.pkm_get(self.pkm, 'level')
-            curlevel = 0
-            if self.b == None:
-                curlevel = self.sav.pkm_get(self.pkm, 'curlevel')
+            curlevel = self.sav.pkm_get(self.pkm, 'curlevel') if self.b is None else 0
             level = max(level, curlevel)
             iv_attack = self.sav.pkm_get(self.pkm, 'attackiv')
             iv_defense = self.sav.pkm_get(self.pkm, 'defenseiv')
@@ -10586,12 +10584,14 @@ class PikaSav():
             pkmn = self.pokeclass['selection']
             num = pokemon_rb.index(pkmn)
             self.pokesprite['selection'] = (pokemon[num])
-            for i in range(len(pokedex_rb)):
-                if pokedex_rb[i].find(pkmn) != -1:
-                    num = i
-                    break
-            else:
-                num = 255
+            num = next(
+                (
+                    i
+                    for i in range(len(pokedex_rb))
+                    if pokedex_rb[i].find(pkmn) != -1
+                ),
+                255,
+            )
             self.type1['selection'] = types_rb[pokemon_types_rb[num][0]]
             self.type2['selection'] = types_rb[pokemon_types_rb[num][1]]
         else:
@@ -10607,9 +10607,7 @@ class PikaSav():
         if self.gen == 1:
             num = rb2dex[num]
         level = self.sav.pkm_get(self.pkm, 'level')
-        curlevel = 0
-        if self.b == None:
-            curlevel = self.sav.pkm_get(self.pkm, 'curlevel')
+        curlevel = self.sav.pkm_get(self.pkm, 'curlevel') if self.b is None else 0
         level = max(level, curlevel)
         if self.gen <= 2:
             iv_attack = self.sav.pkm_get(self.pkm, 'attackiv')
@@ -10623,7 +10621,7 @@ class PikaSav():
             ev_speed = int(level * math.sqrt(self.sav.pkm_get(self.pkm, 'speedev')) / 400)
             ev_special = int(level * math.sqrt(self.sav.pkm_get(self.pkm, 'specialev')) / 400)
             self.pkm = self.sav.pkm_set(self.pkm, 'hp', int(10 + level * (base_hp[num] + iv_hp + 50) / 50) + ev_hp)
-            if self.b == None:
+            if self.b is None:
                 self.pkm = self.sav.pkm_set(self.pkm, 'maxhp',
                                             int(10 + level * (base_hp[num] + iv_hp + 50) / 50) + ev_hp)
                 self.pkm = self.sav.pkm_set(self.pkm, 'attack',
@@ -10683,14 +10681,12 @@ class PikaSav():
         if self.gen == 1:
             num = rb2dex[num]
         growth = growthrates[num]
-        if level == None:
+        if level is None:
             level = self.sav.pkm_get(self.pkm, 'level')
-            curlevel = 0
-            if self.b == None:
-                curlevel = self.sav.pkm_get(self.pkm, 'curlevel')
+            curlevel = self.sav.pkm_get(self.pkm, 'curlevel') if self.b is None else 0
             level = max(level, curlevel)
         exp = int(level ** 3)  # Medium Fast
-        if growth == 1:  # Erratic
+        if growth == 1:
             if level <= 50:
                 exp = (level ** 3 * (100 - level)) / 50
             elif level <= 68:
@@ -10699,18 +10695,18 @@ class PikaSav():
                 exp = (level ** 3 * int((1911 - 10 * level) / 3)) / 500
             else:
                 exp = (level ** 3 * (160 - level)) / 100
-        if growth == 2:  # Fluctuating
+        elif growth == 2:
             if level <= 15:
                 exp = int((level ** 3) * ((int((level + 1) / 3) + 24) / 50.0))
             elif level <= 36:
                 exp = int((level ** 3) * ((level + 14) / 50.0))
             else:
                 exp = int((level ** 3) * ((int(level / 2) + 32) / 50.0))
-        if growth == 3:  # Medium Slow
+        elif growth == 3:
             exp = int(math.floor(level ** 3 * 1.2 - level * level * 15 + level * 100 - 140))
-        if growth == 4:  # Fast
+        elif growth == 4:
             exp = int(math.floor(level ** 3 * 0.8))
-        if growth == 5:  # Slow
+        elif growth == 5:
             exp = int(math.floor(level ** 3 * 1.25))
         self.pkm = self.sav.pkm_set(self.pkm, 'exp', exp)
         self.reload_pkm()
