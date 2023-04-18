@@ -51,7 +51,7 @@ class RBSav:
         with open(self.file, 'rb') as fb:
             self.buffer = fb.read()
             self.obuffer = self.buffer[:]
-        if self.repair == False and (
+        if self.repair is False and (
             len(self.buffer) < 32768 or len(self.buffer) > 65536
         ):
             self.file = None
